@@ -1,16 +1,41 @@
 #include "scheduling_algorithms.h"
 
+//TODO: put this functions in its own array.c file
+bool not_in_there(Process* array, Process process) {
+
+  bool not_in_there = true;
+  for(int i = 0; i<num_processes; i++) {
+    if (array[i].id == process.id) {
+      not_in_there = false; 
+    }
+  }
+
+  return not_in_there;
+
+}
+
 
 // Reads how many processes needs to be created and creates them
 // return heap pointer to a list of process structures
 Process* create_processes(int *num_processes) {
 
+#if TESTING_MODE
+
+  *num_processes = 5;
+
+#else
   printf("Enter the number of Processes: ");
   scanf("%d", num_processes);
   printf("\n");
+#endif
 
   // creating a custom sized array of Process in Heap
   Process* processes = (Process*)malloc(*num_processes*sizeof(Process));
+
+  // assigning ID's
+  for (int i = 0; i < *num_processes; i++) {
+    processes[i].id = i;
+  }
 
   return processes;
  
@@ -19,6 +44,15 @@ Process* create_processes(int *num_processes) {
 // assigns arrival time to each process in the processes list
 void read_arrival_time(Process* processes) {
 
+#if TESTING_MODE
+
+  processes[0].arrival = 0; 
+  processes[1].arrival = 1;
+  processes[2].arrival = 2;
+  processes[3].arrival = 5;
+  processes[4].arrival = 7;
+
+#else
   int arrival_time;
 
   for (int i = 0; i<num_processes; i++) {
@@ -32,11 +66,22 @@ void read_arrival_time(Process* processes) {
 
   printf("\n");
 
+#endif
+
 }
 
 // assigns arrival time to each process in the processes list
 void read_burst_time(Process* processes) {
 
+#if TESTING_MODE
+
+  processes[0].burst = 4; 
+  processes[1].burst = 4;
+  processes[2].burst = 2;
+  processes[3].burst = 1;
+  processes[4].burst = 3;
+
+#else
   int burst_time;
 
   for (int i = 0; i<num_processes; i++) {
@@ -49,6 +94,8 @@ void read_burst_time(Process* processes) {
   }
 
   printf("\n");
+
+#endif
 
 }
 
@@ -81,6 +128,8 @@ while(!isEmpty(&FCFS)) {
   pop(&FCFS);
   
 }
+
+free(FCFS);
   
 #elif (CURRENT_ALGORITHM == SHORTEST_JOB_FIRST_PRE)
 
@@ -90,26 +139,99 @@ while(!isEmpty(&FCFS)) {
 
 Node* SJFNP = newNode(&processes[0], processes[0].arrival);
 for (int i = 1; i < num_processes; i++) {
-  push(&SJFNP, &processes[i], processes[i].arrival);
+  push(&SJFNP, &processes[i], processes[i].arrival); //TODO: add a second priority thing when pushing in this. This causes a bug where when it searches for the first time after idle it doesn't consider the other priority
 }
 
-int t1;
 int prev_completion = 0;
+int done_array_counter = 0;
+
+Process* done_array = (Process*)malloc(num_processes*sizeof(Process)); // array of done_array
+for (int i = 0; i<num_processes; i++) {
+  done_array[i].id = -1; // initial value is -1
+}
+
+bool inside_created = false;
+Node* inside;
+
 
 while(!isEmpty(&SJFNP)) {
 
-  t1 = peek(&SJFNP)->arrival;
+  inside_created = false;
 
-  peek(&SJFNP)->completion = t1 + peek(&SJFNP)->burst;
+  // next not in done_array: take arrival + burst then pop else pop
+  if(not_in_there(done_array, *peek(&SJFNP))) {
+    
+    peek(&SJFNP)->completion = peek(&SJFNP)->arrival + peek(&SJFNP)->burst;
 
-  prev_completion = peek(&SJFNP)->completion;
+    prev_completion = peek(&SJFNP)->completion;
 
-  pop(&SJFNP);
+    done_array[done_array_counter] = *peek(&SJFNP); // POSSIBLE PROBLEM could be * here before peek
+    done_array_counter++;                                              
+
+#if DEBUG_MODE
+    printf("\nArrivalTime input\n");
+    print_process(*peek(&SJFNP));
+    printf("lkjkjfherherhehrerer\n\n");
+#endif
+
+    pop(&SJFNP);
+
+    // dealing with other process that came within this current process's completion time
+    for (int i = 0; i<num_processes; i++) {
+      
+      // if it's not already dealth with and is within comp time
+      if (not_in_there(done_array, processes[i]) && processes[i].arrival <= prev_completion) {         
+
+        if (inside_created) {
+
+          push(&inside, &processes[i], processes[i].burst);
+          
+        } else {
+
+          inside = newNode(&processes[i], processes[i].burst);
+          inside_created = true;
+
+        }
+
+      }
+    }
 
 
-  
+    while(!isEmpty(&inside)) {
+      
+      peek(&inside)->completion = prev_completion + peek(&inside)->burst;
+      prev_completion = peek(&inside)->completion;
+
+      done_array[done_array_counter] = *peek(&inside);
+      done_array_counter++;
+
+#if DEBUG_MODE
+      printf("\nBurstTimeherere\n");
+      print_process(*peek(&inside));
+      printf("lskdjflj\n\n");
+#endif
+
+      pop(&inside);
+
+      // dealing with other process that came within this current process's completion time
+      for (int i = 0; i<num_processes; i++) {
+        
+        // if it's not already dealth with and is within comp time
+        if (not_in_there(done_array, processes[i]) && processes[i].arrival < prev_completion) {  
+          push(&inside, &processes[i], processes[i].burst);
+    
+        }
+      }
+    }
+
+  } else {
+    // this process is dealt with inside another process
+    pop(&SJFNP);
+  }
 }
  
+free(SJFNP);
+free(done_array);
 
 #elif (CURRENT_ALGORITHM == LONGEST_JOB_FIRST)
 
@@ -171,12 +293,19 @@ float calc_average_waiting_time(Process* processes) {
 
 }
 
+void print_process(Process process) {
+
+printf("Process ID: %d\nArrival time: %d\nBurst time: %d\nCompletion time: %d\nTurn Around time: %d\nWaiting time: %d\n", process.id, process.arrival, process.burst, process.completion, process.turn_around, process.waiting);
+
+
+}
+
 // prints the list of process strucutures
 void print_processes(Process* processes) {
 
   for(int i = 0; i<num_processes; i++) {
 
-    printf("Process ID: %d\nArrival time: %d\nBurst time: %d\nCompletion time: %d\nTurn Around time: %d\nWaiting time: %d\n", i+1, processes[i].arrival, processes[i].burst, processes[i].completion, processes[i].turn_around, processes[i].waiting);
+    printf("Process ID: %d\nArrival time: %d\nBurst time: %d\nCompletion time: %d\nTurn Around time: %d\nWaiting time: %d\n", processes[i].id, processes[i].arrival, processes[i].burst, processes[i].completion, processes[i].turn_around, processes[i].waiting);
 
     printf("\n");
 
@@ -186,3 +315,5 @@ void print_processes(Process* processes) {
 void garbage_collection(Process* processes) {
   free(processes);
 }
+
+
