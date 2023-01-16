@@ -8,7 +8,11 @@
 #include <stdbool.h>
 
 #include "config.h"
+#include "process.h"
 #include "implementations.h"
+#include "array.h"
+#include "set.h"
 #include "priority_queue.h"
+#include "main_algorithm.h"
 
 #endif

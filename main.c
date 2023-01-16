@@ -9,6 +9,9 @@ int main() {
   Process* processes = create_processes(&num_processes);
   read_arrival_time(processes);
   read_burst_time(processes);
+#if (CURRENT_ALGORITHM == PRIORITY_SCHEDULING)
+  read_priority_value(processes);
+#endif
 
   // This is calculate the completion time according to choosen algorithm
   calc_completion_time(processes);
@@ -25,10 +28,13 @@ int main() {
   float average_waiting_time = calc_average_waiting_time(processes);
 
   // Viewing the outputs
+  printf("Result Processes Values:\n\n");
   print_processes(processes);
   printf("Average Turn Around Time: %.3f\nAverage Waiting Time: %.3f\n", average_turn_around_time, average_waiting_time);
 
   // deleting the list created in Heap memory
   garbage_collection(processes);
+
+  return 0;
 
 }

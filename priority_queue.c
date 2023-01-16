@@ -28,35 +28,56 @@ void pop(Node** head)
 }
  
 // Function to push according to priority
-void push(Node** head, Process* d, int p)
+void push(Node** head, Process* d, int p, int mode)
 {
     Node* start = (*head);
  
     // Create new Node
     Node* temp = newNode(d, p);
  
-    // Special Case: The head of list has lesser
-    // priority than new node. So insert new
-    // node before head node and change head node.
-    if ((*head)->priority > p) {
- 
-        // Insert New Node before head
-        temp->next = *head;
-        (*head) = temp;
-    }
-    else {
- 
-        // Traverse the list and find a
-        // position to insert new node
-        while (start->next != NULL &&
-            start->next->priority < p) {
-            start = start->next;
-        }
- 
-        // Either at the ends of the list
-        // or at required position
-        temp->next = start->next;
-        start->next = temp;
+    if (mode == MINIMUM_VALUE_FIRST) {
+
+      if ((*head)->priority > p) {
+   
+          // Insert New Node before head
+          temp->next = *head;
+          (*head) = temp;
+      }
+      else {
+   
+          // Traverse the list and find a
+          // position to insert new node
+          while (start->next != NULL && start->next->priority < p) {
+              start = start->next;
+          }
+   
+          // Either at the ends of the list
+          // or at required position
+          temp->next = start->next;
+          start->next = temp;
+      }
+
+    } else if (mode == MAXIMUM_VALUE_FIRST) {
+
+      if ((*head)->priority <= p) {
+   
+          // Insert New Node before head
+          temp->next = *head;
+          (*head) = temp;
+      }
+      else {
+   
+          // Traverse the list and find a
+          // position to insert new node
+          while (start->next != NULL && start->next->priority >= p) {
+              start = start->next;
+          }
+   
+          // Either at the ends of the list
+          // or at required position
+          temp->next = start->next;
+          start->next = temp;
+      }
     }
 }
  
@@ -66,4 +87,41 @@ int isEmpty(Node** head)
     return (*head) == NULL;
 }
 
+bool priority_queue_contains(Node** head, Process process) {
+
+  Node* start = *head;
+  bool in_there = false;
+
+  while( start->next !=NULL ) {
+
+    if( (*start->data).id == process.id ) {
+      in_there = true;
+      break;
+    }
+    start = start->next;
+
+  }
+
+  if( (*start->data).id == process.id ) {
+    in_there = true;
+  }
+
+  return in_there;
+
+}
+
+
+void print_priority_queue(Node** head) {
+
+  Node* start = *head;
+
+  while( start->next !=NULL ) {
+
+    print_process(*start->data);
+    start = start->next;
+
+  }
+  print_process(*start->data);
+
+}
 

@@ -2,28 +2,17 @@
 #ifndef IMPLEMENTATIONS_H
 #define IMPLEMENTATIONS_H
 
-int num_processes;
-
-typedef struct {
-
-  int id; // initial value so that it is known this one is only initialized not set
-  int arrival;
-  int burst;
-  int completion;
-  int turn_around;
-  int waiting;
-
-} Process;
-
-// Reads how many processes needs to be created and creates them
-// return heap pointer to a list of process structures
-Process* create_processes(int *num_processes);
 
 // assigns arrival time to each process in the processes list
 void read_arrival_time(Process* processes);
 
 // assigns arrival time to each process in the processes list
 void read_burst_time(Process* processes);
+
+// assigns priority value to each process in the processes list
+#if (CURRENT_ALGORITHM == PRIORITY_SCHEDULING)
+void read_priority_value(Process* processes);
+#endif
 
 // calculate the completion time using the wanted algorithm
 void calc_completion_time(Process* processes);
