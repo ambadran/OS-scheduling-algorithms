@@ -18,7 +18,11 @@ typedef struct {
 } Process;
 
 // extracts Process attribute using an integer refrence. e.g- instead of process.burst, get_attr_int_refrence(process, 2)
-int get_attr_int_refrence(Process process, int int_ref);
+#if (CURRENT_ALGORITHM == PRIORITY_SCHEDULING)
+int (*get_attr_int_refrence[7])();
+#else
+int (*get_attr_int_refrence[6])();
+#endif
 
 // Reads how many processes needs to be created and creates them
 // return heap pointer to a list of process structures

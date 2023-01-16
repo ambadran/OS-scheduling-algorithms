@@ -32,6 +32,8 @@ int main() {
   print_processes(processes);
   printf("Average Turn Around Time: %.3f\nAverage Waiting Time: %.3f\n", average_turn_around_time, average_waiting_time);
 
+  printf("\n\n here: %d\n", (*get_attr_int_refrence[3])(processes[3]));
+
   // deleting the list created in Heap memory
   garbage_collection(processes);
 
